@@ -1,0 +1,8 @@
+{
+  "name": "オセロ",
+  "short_name": "オセロ",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a7f42",
+  "theme_color": "#0a7f42"
+}
