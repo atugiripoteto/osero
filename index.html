@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>オセロ</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a7f42">
+
+<style>
+  body {
+    font-family: sans-serif;
+    text-align: center;
+  }
+  #board {
+    display: grid;
+    grid-template-columns: repeat(8, 48px);
+    gap: 2px;
+    justify-content: center;
+    margin: 20px auto;
+  }
+  .cell {
+    width: 48px;
+    height: 48px;
+    background: #0a7f42;
+    position: relative;
+  }
+  .cell.can {
+    background: #1aa060;
+  }
+  .stone {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    margin: 5px;
+  }
+  .black { background: black; }
+  .white { background: white; }
+</style>
+</head>
+<body>
+
+<h2 id="turn"></h2>
+<div id="board"></div>
+<p id="result"></p>
+
+<script>
+const EMPTY = 0, BLACK = 1, WHITE = 2;
+let turn = BLACK;
+
+const board = Array.from({ length: 8 }, () => Array(8).fill(EMPTY));
+board[3][3] = WHITE;
+board[3][4] = BLACK;
+board[4][3] = BLACK;
+board[4][4] = WHITE;
+
+const boardDiv = document.getElementById("board");
+const turnText = document.getElementById("turn");
+const resultText = document.getElementById("result");
+
+const directions = [
+  [-1,-1],[-1,0],[-1,1],
+  [0,-1],        [0,1],
+  [1,-1],[1,0],[1,1]
+];
+
+function canFlip(x,y,dx,dy){
+  let nx=x+dx, ny=y+dy, found=false;
+  while(nx>=0&&nx<8&&ny>=0&&ny<8){
+    if(board[ny][nx]===EMPTY) return false;
+    if(board[ny][nx]!==turn) found=true;
+    else return found;
+    nx+=dx; ny+=dy;
+  }
+  return false;
+}
+
+function canPlace(x,y){
+  if(board[y][x]!==EMPTY) return false;
+  return directions.some(d=>canFlip(x,y,d[0],d[1]));
+}
+
+function place(x,y){
+  if(!canPlace(x,y)) return;
+  directions.forEach(([dx,dy])=>{
+    if(canFlip(x,y,dx,dy)){
+      let nx=x+dx, ny=y+dy;
+      while(board[ny][nx]!==turn){
+        board[ny][nx]=turn;
+        nx+=dx; ny+=dy;
+      }
+    }
+  });
+  board[y][x]=turn;
+  turn=turn===BLACK?WHITE:BLACK;
+  draw();
+}
+
+function draw(){
+  boardDiv.innerHTML="";
+  for(let y=0;y<8;y++){
+    for(let x=0;x<8;x++){
+      const c=document.createElement("div");
+      c.className="cell";
+      if(canPlace(x,y)) c.classList.add("can");
+      c.onclick=()=>place(x,y);
+      if(board[y][x]){
+        const s=document.createElement("div");
+        s.className="stone "+(board[y][x]===BLACK?"black":"white");
+        c.appendChild(s);
+      }
+      boardDiv.appendChild(c);
+    }
+  }
+  turnText.textContent=turn===BLACK?"黒の番":"白の番";
+}
+
+draw();
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
+</body>
+</html>
